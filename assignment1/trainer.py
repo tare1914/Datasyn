@@ -73,6 +73,9 @@ class BaseTrainer:
         )
 
         global_step = 0
+        counter = 0
+        low_lost = float('inf')
+
         for epoch in range(num_epochs):
             train_loader = utils.batch_loader(
                 self.X_train, self.Y_train, self.batch_size, shuffle=self.shuffle_dataset)
@@ -90,5 +93,15 @@ class BaseTrainer:
 
                     # TODO (Task 2d): Implement early stopping here.
                     # You can access the validation loss in val_history["loss"]
+
+                    counter += 1
+                    if (val_history["loss"][global_step] < low_lost):
+                        low_lost = val_history["loss"][global_step]
+                        counter = 0
+                    if (counter > 9):
+                        print("Stopped at", epoch, "epochs")
+                        return train_history, val_history
+
+
                 global_step += 1
         return train_history, val_history

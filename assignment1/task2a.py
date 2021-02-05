@@ -20,7 +20,6 @@ def pre_process_images(X: np.ndarray):
         im.append(1.0)
 
     X = np.array(X)
-
     return X
 
 
@@ -36,19 +35,16 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray) -> float:
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
 
-    #C = 1/targets.shape[0]*np.sum(-(targets * np.log(outputs) + (1 - targets)*np.log(1 - outputs)))
+    C = 1/targets.shape[0]*np.sum(-(targets * np.log(outputs) + (1 - targets)*np.log(1 - outputs)))
 
-    cel = -(targets*np.log(outputs) + (1-targets)*np.log(1-outputs))
-    cel = (1/targets.shape[0])*np.sum(cel)
-
-    return cel
+    return C
 
 
 class BinaryModel:
 
     def __init__(self):
         # Define number of input nodes
-        self.I = None
+        self.I = 785
         self.w = np.zeros((self.I, 1))
         self.grad = None
 
@@ -61,7 +57,7 @@ class BinaryModel:
         """
         # TODO implement this function (Task 2a)
 
-        y = np.zeros(X.shape[0], 1)
+        y = np.zeros((X.shape[0], 1))
         wtrans = np.transpose(self.w)
 
         for i, x in enumerate(X):

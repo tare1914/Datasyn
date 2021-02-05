@@ -15,17 +15,19 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
     # TODO implement this function (Task 3a)
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
-    raise NotImplementedError
+
+    C = (1 / targets.shape[0]) * np.sum((-np.sum(targets * np.log(outputs), axis=1)))
+    return C
 
 
 class SoftmaxModel:
 
     def __init__(self, l2_reg_lambda: float):
         # Define number of input nodes
-        self.I = None
+        self.I = 785
 
         # Define number of output nodes
-        self.num_outputs = None
+        self.num_outputs = 10
         self.w = np.zeros((self.I, self.num_outputs))
         self.grad = None
 
@@ -39,7 +41,10 @@ class SoftmaxModel:
             y: output of model with shape [batch size, num_outputs]
         """
         # TODO implement this function (Task 3a)
-        return None
+        over = np.exp(X.dot(self.w))
+        under = np.transpose(np.array([np.sum(np.exp(X.dot(self.w)), axis=1)]))
+
+        return over/under
 
     def backward(self, X: np.ndarray, outputs: np.ndarray, targets: np.ndarray) -> None:
         """
@@ -55,9 +60,8 @@ class SoftmaxModel:
         # which is defined in the constructor.
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
-        self.grad = np.zeros_like(self.w)
-        assert self.grad.shape == self.w.shape,\
-             f"Grad shape: {self.grad.shape}, w: {self.w.shape}"
+        self.grad = -(1 / targets.shape[0]) * (np.transpose(X).dot((targets - outputs)))
+
 
     def zero_grad(self) -> None:
         self.grad = None
@@ -71,7 +75,13 @@ def one_hot_encode(Y: np.ndarray, num_classes: int):
     Returns:
         Y: shape [Num examples, num classes]
     """
-    raise NotImplementedError
+
+    Y = np.zeros((Y.shape[0], num_classes), dtype=int)
+    
+    for i in range(Y.shape[0]):
+        Y[i, Y[i]] = 1
+        
+    return Y
 
 
 def gradient_approximation_test(model: SoftmaxModel, X: np.ndarray, Y: np.ndarray):
