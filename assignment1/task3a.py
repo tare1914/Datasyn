@@ -61,7 +61,7 @@ class SoftmaxModel:
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
         self.grad = -(1 / targets.shape[0]) * (np.transpose(X).dot((targets - outputs)))
-
+        self.grad += 2*self.l2_reg_lambda*self.w
 
     def zero_grad(self) -> None:
         self.grad = None
@@ -76,12 +76,12 @@ def one_hot_encode(Y: np.ndarray, num_classes: int):
         Y: shape [Num examples, num classes]
     """
 
-    Y = np.zeros((Y.shape[0], num_classes), dtype=int)
+    Ys = np.zeros((Y.shape[0], num_classes), dtype=int)
     
     for i in range(Y.shape[0]):
-        Y[i, Y[i]] = 1
-        
-    return Y
+        Ys[i, Y[i]] = 1
+
+    return Ys
 
 
 def gradient_approximation_test(model: SoftmaxModel, X: np.ndarray, Y: np.ndarray):
