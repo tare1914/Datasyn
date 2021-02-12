@@ -18,12 +18,8 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
 
-<<<<<<< HEAD
-    return c_e_l_error
-=======
     C = (1 / targets.shape[0]) * np.sum((-np.sum(targets * np.log(outputs), axis=1)))
     return C
->>>>>>> 5a12171f605d43b506492d02e02be328ee9cf70e
 
 
 class SoftmaxModel:
@@ -46,21 +42,11 @@ class SoftmaxModel:
         Returns:
             y: output of model with shape [batch size, num_outputs]
         """
-<<<<<<< HEAD
-        # Task 3a)  -  Implementation of forward pass through single layer softmax model.
-        zk = np.dot(X, self.w)
-        exp_zk = np.exp(zk)
-        sum_exp_zk = np.sum(exp_zk, axis=1)
-        yk = exp_zk / sum_exp_zk[:, None]
-
-        return yk
-=======
         # TODO implement this function (Task 3a)
         over = np.exp(X.dot(self.w))
         under = np.transpose(np.array([np.sum(np.exp(X.dot(self.w)), axis=1)]))
 
         return over/under
->>>>>>> 5a12171f605d43b506492d02e02be328ee9cf70e
 
     def backward(self, X: np.ndarray, outputs: np.ndarray, targets: np.ndarray) -> None:
         """
@@ -96,15 +82,6 @@ def one_hot_encode(Y: np.ndarray, num_classes: int):
     Returns:
         Y: shape [Num examples, num classes]
     """
-<<<<<<< HEAD
-    # Task 3a)  -  One-hot encoding of target values.
-    encoding = np.zeros((len(Y), num_classes))
-
-    for i in range(len(Y)):
-        encoding[i, Y[i]] = 1
-
-    return encoding
-=======
 
     Ys = np.zeros((Y.shape[0], num_classes), dtype=int)
     
@@ -112,7 +89,6 @@ def one_hot_encode(Y: np.ndarray, num_classes: int):
         Ys[i, Y[i]] = 1
 
     return Ys
->>>>>>> 5a12171f605d43b506492d02e02be328ee9cf70e
 
 
 def gradient_approximation_test(model: SoftmaxModel, X: np.ndarray, Y: np.ndarray):
