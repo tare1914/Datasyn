@@ -12,7 +12,9 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
     Returns:
         Cross entropy error (float)
     """
-    # TODO implement this function (Task 3a)
+    # Task 3a) - Cross entropy loss.
+    c_e_l_error = np.mean(-np.sum(targets * np.log(outputs), axis=1))
+
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
 
@@ -55,13 +57,18 @@ class SoftmaxModel:
             outputs: outputs of model of shape: [batch size, num_outputs]
             targets: labels/targets of each image of shape: [batch size, num_classes]
         """
-        # TODO implement this function (Task 3a)
+        # Task 3a)  -  Implementation of backward pass.
+        self.grad = np.dot(-X.T, (targets - outputs)) / X.shape[0] + (self.l2_reg_lambda * 2 * self.w)
+
         # To implement L2 regularization task (4b) you can get the lambda value in self.l2_reg_lambda 
         # which is defined in the constructor.
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
         self.grad = -(1 / targets.shape[0]) * (np.transpose(X).dot((targets - outputs)))
         self.grad += 2*self.l2_reg_lambda*self.w
+
+        return self.grad
+
 
     def zero_grad(self) -> None:
         self.grad = None
