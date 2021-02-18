@@ -73,6 +73,9 @@ class BaseTrainer:
         )
 
         global_step = 0
+        counter = 0
+        low_lost = float('inf')
+
         for epoch in range(num_epochs):
             train_loader = utils.batch_loader(
                 self.X_train, self.Y_train, self.batch_size, shuffle=self.shuffle_dataset)
@@ -88,5 +91,12 @@ class BaseTrainer:
                     val_history["loss"][global_step] = val_loss
                     val_history["accuracy"][global_step] = accuracy_val
                     # TODO: Implement early stopping (copy from last assignment)
+                    counter += 1
+                    if (val_history["loss"][global_step] < low_lost):
+                        low_lost = val_history["loss"][global_step]
+                        counter = 0
+                    if (counter > 49):
+                        print("Stopped at", epoch, "epochs")
+                        return train_history, val_history
                 global_step += 1
         return train_history, val_history
