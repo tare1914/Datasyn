@@ -103,25 +103,25 @@ class SoftmaxModel:
         # HINT: For peforming the backward pass, you can save intermediate activations in varialbes in the forward pass.
         # such as self.hidden_layer_ouput = ...
 
-        i = 0 
-        z = X.dot(self.ws[0])  # z (n, 64) <= X(n, 785) dot ws(785,64)  n=batch_size
+        lay = 0 
+        z = X.dot(self.ws[0])
+
         for weights in self.ws:
-            if i < self.num_hidden_layers:
-                self.hidden_layer_z[i] = z
-            #if X.shape[1] == weights.shape[0]:  # Single hidden layer, sigmoid activation function.
+            if lay < self.num_hidden_layers:
+                self.hidden_layer_z[lay] = z
+
                 if self.use_improved_sigmoid:
-                    self.hidden_layer_output[i] = 1.7159*np.tanh((2.0/3.0)*z)
+                    self.hidden_layer_output[lay] = 1.7159*np.tanh((2.0/3.0)*z)
                 else: 
-                    self.hidden_layer_output[i] = np.exp(z)/(np.exp(z)+1)  # z (n, 64)
-                i += 1
-                #update z for hidden layers
-                z = self.hidden_layer_output[i-1].dot(self.ws[i])
-            else:  # Softmax Layer
-                #z = self.hidden_layer_output[i-1].dot(weights)  # z (n, 10) <= HiddenLayer (n,64) dot ws1 (64,10)
+                    self.hidden_layer_output[lay] = np.exp(z)/(np.exp(z)+1)
+
+                z = self.hidden_layer_output[lay].dot(self.ws[lay + 1])
+                lay += 1
+            else:  
                 e_z = np.exp(z)
                 sum_zk = np.sum(e_z, axis=1, keepdims=True)
-                y = np.divide(e_z, sum_zk) # y (n,10)
-        return y
+                
+        return e_z / sum_zk
         
 
     def backward(self, X: np.ndarray, outputs: np.ndarray,
@@ -136,27 +136,28 @@ class SoftmaxModel:
         """
         # TODO implement this function (Task 2b)
 
-        mean_bz = 1 / X.shape[0]
-        delta = -(targets - outputs)
+        mean = 1 / X.shape[0]
+        delta = outputs - targets
         
-        #gradient descent for outputlayer
-        self.grads[self.num_hidden_layers] = mean_bz*np.transpose(self.hidden_layer_output[self.num_hidden_layers-1]).dot((delta)) 
+        self.grads[self.num_hidden_layers] = mean*np.transpose(self.hidden_layer_output[self.num_hidden_layers-1]).dot((delta)) 
          
         for i in reversed(range(self.num_hidden_layers)):
             if self.use_improved_sigmoid:
                 sigmoid_derivate = (2*1.7159)/(3*np.power(np.cosh((2/3)*self.hidden_layer_z[i]),2))
-                #sigmoid_derivate = (1.17159*2)/3*(1-np.tanh(2/3*self.hidden_layer_output[i])**2)
             else:
-                sigmoid_derivate= self.hidden_layer_output[i]*(1-self.hidden_layer_output[i])
-            weights_error = self.ws[i+1].dot(delta.T)
-            delta = sigmoid_derivate*(weights_error.T)
-            if i == 0:
-                self.grads[i] = mean_bz*(X.T.dot(delta))
+                sigmoid_derivate = self.hidden_layer_output[i]*(1-self.hidden_layer_output[i])
+
+            ws_err = self.ws[i+1].dot(delta.T)
+            delta = sigmoid_derivate*(ws_err.T)
+
+            if not i:
+                self.grads[i] = mean*(X.T.dot(delta))
             else:
-                self.grads[i] = mean_bz*(self.hidden_layer_output[i-1].T.dot(delta))
+                self.grads[i] = mean*(self.hidden_layer_output[i-1].T.dot(delta))
 
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
+
         # A list of gradients.
         # For example, self.grads[0] will be the gradient for the first hidden layer
         #self.grads = []
@@ -233,8 +234,8 @@ if __name__ == "__main__":
         f"Expected X_train to have 785 elements per image. Shape was: {X_train.shape}"
 
     neurons_per_layer = [64, 10]
-    use_improved_sigmoid = False
-    use_improved_weight_init = False
+    use_improved_sigmoid = True
+    use_improved_weight_init = True
     model = SoftmaxModel(
         neurons_per_layer, use_improved_sigmoid, use_improved_weight_init)
 
