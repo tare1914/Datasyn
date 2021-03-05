@@ -50,6 +50,7 @@ def cache_url(url, model_dir=None, progress=True):
         if len(hash_prefix) < 6:
             hash_prefix = None
     download_url_to_file(url, cached_file, hash_prefix, progress=progress)
+    return cached_file
 
 
 def load_state_dict_from_url(url, map_location='cpu'):
