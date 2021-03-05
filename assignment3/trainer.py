@@ -23,6 +23,10 @@ def compute_loss_and_accuracy(
     """
     average_loss = 0
     accuracy = 0
+    correct_predicts = 0
+    counter_batches = 0
+    counter_samples = 0
+    
     # TODO: Implement this function (Task  2a)
     with torch.no_grad():
         for (X_batch, Y_batch) in dataloader:
@@ -33,6 +37,17 @@ def compute_loss_and_accuracy(
             output_probs = model(X_batch)
 
             # Compute Loss and Accuracy
+            average_loss += loss_criterion(output_probs, Y_batch)
+
+            predict = output_probs.argmax(dim=1)
+            correct_predicts += torch.sum(predict == Y_batch)
+
+            counter_batches += 1
+            counter_samples += Y_batch.shape[0]
+            
+    
+    average_loss = average_loss / counter_batches
+    accuracy = correct_predicts / counter_samples
 
     return average_loss, accuracy
 
@@ -66,6 +81,8 @@ class Trainer:
         self.optimizer = torch.optim.SGD(self.model.parameters(),
                                          self.learning_rate)
 
+        #self.optimizer = torch.optim.Adagrad(self.model.parameters(), self.learning_rate, weight_decay = 0.0)
+
         # Load our dataset
         self.dataloader_train, self.dataloader_val, self.dataloader_test = dataloaders
 
@@ -91,19 +108,35 @@ class Trainer:
             Computes the loss/accuracy for all three datasets.
             Train, validation and test.
         """
+        
         self.model.eval()
+        
+        # Validation set
         validation_loss, validation_acc = compute_loss_and_accuracy(
             self.dataloader_val, self.model, self.loss_criterion
         )
         self.validation_history["loss"][self.global_step] = validation_loss
         self.validation_history["accuracy"][self.global_step] = validation_acc
         used_time = time.time() - self.start_time
+
+        #Training set
+        training_loss, training_acc = compute_loss_and_accuracy(
+            self.dataloader_train, self.model, self.loss_criterion
+        )
+
+        #Test set
+        test_loss, test_acc = compute_loss_and_accuracy(
+            self.dataloader_test, self.model, self.loss_criterion
+        )
+
         print(
             f"Epoch: {self.epoch:>1}",
             f"Batches per seconds: {self.global_step / used_time:.2f}",
             f"Global step: {self.global_step:>6}",
             f"Validation Loss: {validation_loss:.2f}",
             f"Validation Accuracy: {validation_acc:.3f}",
+            f"Training Accuracy: {training_acc:.3f}",
+            f"Test Accuracy: {test_acc:.3f}",
             sep=", ")
         self.model.train()
 
